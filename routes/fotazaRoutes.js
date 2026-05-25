@@ -4,8 +4,10 @@ const fotazaController = require('../controllers/fotazaController');
 
 // Ruta para ver el listado
 router.get('/', fotazaController.index);
-
-// Ruta para guardar una nueva (será un POST desde tu formulario)
+router.get('/create', (req, res) => {
+    res.render('nuevaFotaza');
+});
+// Ruta para guardar una nueva (será un POST desde formulario)
 router.post('/create', fotazaController.create);
 
 module.exports = router;

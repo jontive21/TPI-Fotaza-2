@@ -1,0 +1,13 @@
+// views/nuevaFotaza.pug
+h1 Nueva Fotaza
+form(action="/fotazas/create", method="POST")
+  div
+    label(for="titulo") Título:
+    input(type="text", name="titulo", required)
+  div
+    label(for="descripcion") Descripción:
+    textarea(name="descripcion", required)
+  div
+    label(for="url_imagen") URL Imagen:
+    input(type="text", name="url_imagen", required)
+  button(type="submit") Guardar Fotaza
