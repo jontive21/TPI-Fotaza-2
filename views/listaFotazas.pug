@@ -1,8 +1,23 @@
 h1 Listado de Fotazas
+br
+a(href="/fotazas/create") + Agregar una nueva fotaza
+br
+br
+
 if fotos.length > 0
   ul
     each foto in fotos
-      li= foto.titulo
+      li
+        strong= foto.titulo
+        p= foto.descripcion
+        if foto.url_imagen
+          img(src=foto.url_imagen, width="200")
+        br
+        br
+        a(href=`/fotazas/edit/${foto.id}` style="margin-right: 15px; color: blue;") Editar
+        form(action=`/fotazas/delete/${foto.id}` method="POST" onsubmit="return confirm('¿Seguro que quieres eliminar esta fotaza?')")
+          button(type="submit" style="color: red; cursor: pointer;") Eliminar
+        hr
 else
   p No hay fotos cargadas todavía.
   

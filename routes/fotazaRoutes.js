@@ -10,4 +10,11 @@ router.get('/create', (req, res) => {
 // Ruta para guardar una nueva (será un POST desde formulario)
 router.post('/create', fotazaController.create);
 
+// Ruta para eliminar una fotaza
+router.post('/delete/:id', fotazaController.delete);
+
+// Rutas para Editar
+router.get('/edit/:id', fotazaController.editForm);
+router.post('/edit/:id', fotazaController.update);
+
 module.exports = router;

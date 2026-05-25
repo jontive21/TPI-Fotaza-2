@@ -30,6 +30,45 @@ const fotazaController = {
         } catch (error) {
             res.status(500).send("Error al guardar la foto");
         }
+    },
+
+    // Método para eliminar una foto
+    delete: async (req, res) => {
+        try {
+            await Fotaza.destroy({
+                where: { id: req.params.id }
+            });
+            res.redirect('/fotazas');
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error al eliminar la foto");
+        }
+    },
+
+    // Muestra el formulario con los datos cargados
+    editForm: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const foto = await Fotaza.findByPk(id);
+            res.render('editarFotaza', { foto: foto });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error al buscar la fotaza");
+        }
+    },
+
+    // Guarda los cambios modificados en MySQL
+    update: async (req, res) => {
+        try {
+            const { id } = req.params;
+            await Fotaza.update(req.body, {
+                where: { id: id }
+            });
+            res.redirect('/fotazas');
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error al actualizar la fotaza");
+        }
     }
 };
 
