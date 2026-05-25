@@ -5,7 +5,7 @@ const fotazaController = {
     index: async (req, res) => {
         try {
             const fotos = await Fotaza.findAll();
-            // Esto buscará una vista llamada 'listaFotazas.pug'
+            // buscará una vista llamada 'listaFotazas.pug'
             res.render('listaFotazas', { fotos: fotos });
         } catch (error) {
             console.error(error);
@@ -13,7 +13,7 @@ const fotazaController = {
         }
     },
 
-    // Método para crear una nueva foto (lo usaremos luego en el formulario)
+    // Método para crear una nueva foto (luego en el formulario)
     create: async (req, res) => {
         try {
             await Fotaza.create(req.body);

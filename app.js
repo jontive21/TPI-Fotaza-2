@@ -3,7 +3,7 @@ const path = require('path');
 
 const app = express();
 
-// View engine (si usas Pug en tu proyecto)
+// View engine (Pug en proyecto)
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
