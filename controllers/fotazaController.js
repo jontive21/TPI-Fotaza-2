@@ -1,24 +1,45 @@
+const { Op } = require('sequelize');
 const { Fotaza } = require('../models');
 
 const fotazaController = {
     // Método para listar todas las fotos (alias de index)
     listar: async (req, res) => {
         try {
-            const fotos = await Fotaza.findAll();
+            const fotos = await Fotaza.findAll({
+                include: 'comentarios'
+            });
             res.render('listaFotazas', { fotos }); // Esto renderizará una vista en Pug
         } catch (error) {
             res.status(500).send("Error al obtener las fotos");
         }
     },
 
-    // Método para listar (utilizado por las rutas)
+    // Método para listar y buscar (Modificado para incluir comentarios)
     index: async (req, res) => {
         try {
-            const fotos = await Fotaza.findAll();
-            res.render('listaFotazas', { fotos: fotos });
+            const { q } = req.query;
+            let fotos;
+
+            if (q) {
+                fotos = await Fotaza.findAll({
+                    where: {
+                        [Op.or]: [
+                            { titulo: { [Op.like]: `%${q}%` } },
+                            { etiquetas: { [Op.like]: `%${q}%` } }
+                        ]
+                    },
+                    include: 'comentarios' // ¡AGREGAMOS ESTO!
+                });
+            } else {
+                fotos = await Fotaza.findAll({
+                    include: 'comentarios' // ¡AGREGAMOS ESTO!
+                });
+            }
+
+            res.render('listaFotazas', { fotos: fotos, busqueda: q || '' });
         } catch (error) {
             console.error(error);
-            res.status(500).send("Error al obtener las fotos de la base de datos");
+            res.status(500).send("Error al procesar el listado o la búsqueda");
         }
     },
 

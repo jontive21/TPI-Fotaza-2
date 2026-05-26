@@ -3,6 +3,13 @@ br
 a(href="/fotazas/create") + Agregar una nueva fotaza
 br
 br
+//- ¡AGREGAMOS ESTE BLOQUE DE FORMULARIO DE BÚSQUEDA!
+form(action="/fotazas" method="GET" style="margin-bottom: 20px;")
+  input(type="text" name="q" value=busqueda placeholder="Buscar por título o etiqueta..." style="padding: 5px; width: 250px;")
+  button(type="submit" style="padding: 5px; margin-left: 5px; cursor: pointer;") Buscar
+  if busqueda
+    a(href="/fotazas" style="margin-left: 10px; color: gray; text-decoration: none;") Limpiar filtro
+br
 
 if fotos.length > 0
   ul
@@ -15,6 +22,24 @@ if fotos.length > 0
         if foto.etiquetas
           p(style="color: gray; font-style: italic;") Etiquetas: #{foto.etiquetas}
         br
+        br
+        
+        //- ¡AQUÍ COLOCAMOS EL BLOQUE DE COMENTARIOS!
+        div(style="background-color: #e9e9e9; padding: 10px; margin-top: 10px; border-radius: 5px; width: 50%;")
+          h4 Comentarios:
+          if foto.comentarios && foto.comentarios.length > 0
+            ul
+              each comentario in foto.comentarios
+                li(style="margin-bottom: 5px; font-size: 0.95em;")= comentario.contenido
+          else
+            p(style="color: gray; font-size: 0.9em;") No hay comentarios. Sé el primero en comentar.
+          
+          //- Formulario para escribir un nuevo comentario
+          form(action="/fotazas/comment" method="POST" style="margin-top: 10px;")
+            input(type="hidden" name="fotazaId" value=foto.id)
+            input(type="text" name="contenido" placeholder="Escribe un comentario..." required style="width: 70%; padding: 4px;")
+            button(type="submit" style="padding: 4px 10px; margin-left: 5px; cursor: pointer;") Enviar
+            
         br
         a(href=`/fotazas/edit/${foto.id}` style="margin-right: 15px; color: blue;") Editar
         form(action=`/fotazas/delete/${foto.id}` method="POST" onsubmit="return confirm('¿Seguro que quieres eliminar esta fotaza?')")
