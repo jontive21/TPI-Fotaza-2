@@ -24,6 +24,11 @@ if fotos.length > 0
         br
         br
         
+        //- ¡AGREGAMOS ESTE BLOQUE DE VOTACIÓN!
+        form(action=`/fotazas/votar/${foto.id}` method="POST" style="margin-bottom: 10px;")
+          span(style="margin-right: 10px; font-weight: bold;") 👍 Votos: #{foto.votos || 0}
+          button(type="submit" style="cursor: pointer; padding: 2px 8px;") ¡Votar foto!
+        
         //- ¡AQUÍ COLOCAMOS EL BLOQUE DE COMENTARIOS!
         div(style="background-color: #e9e9e9; padding: 10px; margin-top: 10px; border-radius: 5px; width: 50%;")
           h4 Comentarios:

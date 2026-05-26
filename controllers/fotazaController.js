@@ -90,6 +90,24 @@ const fotazaController = {
             console.error(error);
             res.status(500).send("Error al actualizar la fotaza");
         }
+    },
+
+    // Método rústico para sumar un voto a la fotaza
+    votar: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const foto = await Fotaza.findByPk(id); // Buscamos la foto por ID
+            
+            if (foto) {
+                foto.votos = (foto.votos || 0) + 1; // Le sumamos 1 al contador
+                await foto.save(); // Guardamos el cambio en MySQL
+            }
+            
+            res.redirect('/fotazas'); // Volvemos a la lista para ver el cambio
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error al procesar el voto");
+        }
     }
 };
 

@@ -12,8 +12,9 @@ module.exports = (sequelize, DataTypes) => {
   Fotaza.init({
     titulo: DataTypes.STRING,
     descripcion: DataTypes.STRING,
-    url_imagen: DataTypes.STRING
-    ,etiquetas: DataTypes.STRING
+    url_imagen: DataTypes.STRING,
+    etiquetas: DataTypes.STRING,
+    votos: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Fotaza',

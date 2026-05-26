@@ -14,6 +14,9 @@ router.post('/create', fotazaController.create);
 // Ruta para eliminar una fotaza
 router.post('/delete/:id', fotazaController.delete);
 
+// Ruta para votar una fotaza
+router.post('/votar/:id', fotazaController.votar);
+
 // Rutas para Editar
 router.get('/edit/:id', fotazaController.editForm);
 router.post('/edit/:id', fotazaController.update);
