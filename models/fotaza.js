@@ -4,9 +4,9 @@ const {
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Fotaza extends Model {
-    
     static associate(models) {
-      
+      // Una fotaza tiene muchos comentarios
+      Fotaza.hasMany(models.Comentario, { foreignKey: 'fotazaId', as: 'comentarios' });
     }
   }
   Fotaza.init({
