@@ -15,6 +15,11 @@ form(action=`/fotazas/edit/${foto.id}` method="POST")
     br
     input(type="text" name="url_imagen" value=foto.url_imagen required=true)
   br
+  div
+    label Etiquetas (separadas por comas):
+    br
+    input(type="text" name="etiquetas" value=foto.etiquetas required=true)
+  br
   button(type="submit") Actualizar Cambios
 br
 a(href="/fotazas") Cancelar y volver

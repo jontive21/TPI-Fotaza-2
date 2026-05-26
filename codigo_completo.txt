@@ -1,0 +1,439 @@
+================================================================================
+File: .env.example
+================================================================================
+
+PORT=3000
+DB_USERNAME=tu_usuario
+DB_PASSWORD=tu_contraseña
+DB_NAME=nombre_base_datos
+DB_HOST=127.0.0.1
+DB_DIALECT=mysql
+
+
+================================================================================
+File: .sequelizerc
+================================================================================
+
+
+
+================================================================================
+File: app.js
+================================================================================
+
+require('dotenv').config();
+const express = require('express');
+const path = require('path');
+
+const app = express();
+
+// View engine (Pug en proyecto)
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
+// Middlewares
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+// Servidor de archivos estáticos (para CSS, imágenes, etc.)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Rutas
+const fotazaRoutes = require('./routes/fotazaRoutes');
+app.use('/fotazas', fotazaRoutes);
+
+// Puerto
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+module.exports = app;
+
+
+================================================================================
+File: config\config.js
+================================================================================
+
+require('dotenv').config();
+
+module.exports = {
+  development: {
+    username: process.env.DB_USERNAME || "root",
+    password: process.env.DB_PASSWORD || null,
+    database: process.env.DB_NAME || "fotaza_db",
+    host: process.env.DB_HOST || "127.0.0.1",
+    dialect: process.env.DB_DIALECT || "mysql"
+  },
+  test: {
+    username: process.env.DB_USERNAME || "root",
+    password: process.env.DB_PASSWORD || null,
+    database: "fotaza_db_test",
+    host: process.env.DB_HOST || "127.0.0.1",
+    dialect: process.env.DB_DIALECT || "mysql"
+  },
+  production: {
+    username: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+    database: "fotaza_db_production",
+    host: process.env.DB_HOST,
+    dialect: process.env.DB_DIALECT
+  }
+};
+
+
+================================================================================
+File: controllers\fotazaController.js
+================================================================================
+
+const { Fotaza } = require('../models');
+
+const fotazaController = {
+    // Método para listar todas las fotos (alias de index)
+    listar: async (req, res) => {
+        try {
+            const fotos = await Fotaza.findAll();
+            res.render('listaFotazas', { fotos }); // Esto renderizará una vista en Pug
+        } catch (error) {
+            res.status(500).send("Error al obtener las fotos");
+        }
+    },
+
+    // Método para listar (utilizado por las rutas)
+    index: async (req, res) => {
+        try {
+            const fotos = await Fotaza.findAll();
+            res.render('listaFotazas', { fotos: fotos });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error al obtener las fotos de la base de datos");
+        }
+    },
+
+    // Método para crear una nueva foto
+    create: async (req, res) => {
+        try {
+            await Fotaza.create(req.body);
+            res.redirect('/fotazas');
+        } catch (error) {
+            res.status(500).send("Error al guardar la foto");
+        }
+    },
+
+    // Método para eliminar una foto
+    delete: async (req, res) => {
+        try {
+            await Fotaza.destroy({
+                where: { id: req.params.id }
+            });
+            res.redirect('/fotazas');
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error al eliminar la foto");
+        }
+    },
+
+    // Muestra el formulario con los datos cargados
+    editForm: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const foto = await Fotaza.findByPk(id);
+            res.render('editarFotaza', { foto: foto });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error al buscar la fotaza");
+        }
+    },
+
+    // Guarda los cambios modificados en MySQL
+    update: async (req, res) => {
+        try {
+            const { id } = req.params;
+            await Fotaza.update(req.body, {
+                where: { id: id }
+            });
+            res.redirect('/fotazas');
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error al actualizar la fotaza");
+        }
+    }
+};
+
+module.exports = fotazaController;
+
+
+================================================================================
+File: migrations\20260524130036-create-fotaza.js
+================================================================================
+
+'use strict';
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('Fotazas', {
+      id: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER
+      },
+      titulo: {
+        type: Sequelize.STRING
+      },
+      descripcion: {
+        type: Sequelize.STRING
+      },
+      url_imagen: {
+        type: Sequelize.STRING
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      }
+    });
+  },
+  async down(queryInterface, Sequelize) {
+    await queryInterface.dropTable('Fotazas');
+  }
+};
+
+================================================================================
+File: migrations\20260524130846-create-fotaza.js
+================================================================================
+
+'use strict';
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('Fotazas', {
+      id: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER
+      },
+      titulo: {
+        type: Sequelize.STRING
+      },
+      descripcion: {
+        type: Sequelize.STRING
+      },
+      url_imagen: {
+        type: Sequelize.STRING
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      }
+    });
+  },
+  async down(queryInterface, Sequelize) {
+    await queryInterface.dropTable('Fotazas');
+  }
+};
+
+================================================================================
+File: models\fotaza.js
+================================================================================
+
+'use strict';
+const {
+  Model
+} = require('sequelize');
+module.exports = (sequelize, DataTypes) => {
+  class Fotaza extends Model {
+    
+    static associate(models) {
+      
+    }
+  }
+  Fotaza.init({
+    titulo: DataTypes.STRING,
+    descripcion: DataTypes.STRING,
+    url_imagen: DataTypes.STRING
+  }, {
+    sequelize,
+    modelName: 'Fotaza',
+  });
+  return Fotaza;
+};
+
+================================================================================
+File: models\index.js
+================================================================================
+
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const Sequelize = require('sequelize');
+const process = require('process');
+const basename = path.basename(__filename);
+const env = process.env.NODE_ENV || 'development';
+const config = require(__dirname + '/../config/config.js')[env];
+const db = {};
+
+let sequelize;
+if (config.use_env_variable) {
+  sequelize = new Sequelize(process.env[config.use_env_variable], config);
+} else {
+  sequelize = new Sequelize(config.database, config.username, config.password, config);
+}
+
+fs
+  .readdirSync(__dirname)
+  .filter(file => {
+    return (
+      file.indexOf('.') !== 0 &&
+      file !== basename &&
+      file.slice(-3) === '.js' &&
+      file.indexOf('.test.js') === -1
+    );
+  })
+  .forEach(file => {
+    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
+    db[model.name] = model;
+  });
+
+Object.keys(db).forEach(modelName => {
+  if (db[modelName].associate) {
+    db[modelName].associate(db);
+  }
+});
+
+db.sequelize = sequelize;
+db.Sequelize = Sequelize;
+
+module.exports = db;
+
+
+================================================================================
+File: package.json
+================================================================================
+
+{
+  "name": "tpi-fotaza-2",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node app.js",
+    "db:init": "npx sequelize-cli db:migrate",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mysql2": "^3.22.3",
+    "pug": "^3.0.4",
+    "sequelize": "^6.37.8",
+    "sequelize-cli": "^6.6.5"
+  }
+}
+
+================================================================================
+File: public\css\test.css
+================================================================================
+
+body { background-color: #f0f0f0; }
+
+================================================================================
+File: routes\fotazaRoutes.js
+================================================================================
+
+const express = require('express');
+const router = express.Router();
+const fotazaController = require('../controllers/fotazaController');
+
+// Ruta para ver el listado
+router.get('/', fotazaController.index);
+router.get('/create', (req, res) => {
+    res.render('nuevaFotaza');
+});
+// Ruta para guardar una nueva (será un POST desde formulario)
+router.post('/create', fotazaController.create);
+
+// Ruta para eliminar una fotaza
+router.post('/delete/:id', fotazaController.delete);
+
+// Rutas para Editar
+router.get('/edit/:id', fotazaController.editForm);
+router.post('/edit/:id', fotazaController.update);
+
+module.exports = router;
+
+
+================================================================================
+File: views\editarFotaza.pug
+================================================================================
+
+h1 Editar Fotaza
+form(action=`/fotazas/edit/${foto.id}` method="POST")
+  div
+    label Título:
+    br
+    input(type="text" name="titulo" value=foto.titulo required=true)
+  br
+  div
+    label Descripción:
+    br
+    textarea(name="descripcion" required=true)= foto.descripcion
+  br
+  div
+    label URL de la Imagen:
+    br
+    input(type="text" name="url_imagen" value=foto.url_imagen required=true)
+  br
+  button(type="submit") Actualizar Cambios
+br
+a(href="/fotazas") Cancelar y volver
+
+================================================================================
+File: views\listaFotazas.pug
+================================================================================
+
+h1 Listado de Fotazas
+br
+a(href="/fotazas/create") + Agregar una nueva fotaza
+br
+br
+
+if fotos.length > 0
+  ul
+    each foto in fotos
+      li
+        strong= foto.titulo
+        p= foto.descripcion
+        if foto.url_imagen
+          img(src=foto.url_imagen, width="200")
+        br
+        br
+        a(href=`/fotazas/edit/${foto.id}` style="margin-right: 15px; color: blue;") Editar
+        form(action=`/fotazas/delete/${foto.id}` method="POST" onsubmit="return confirm('¿Seguro que quieres eliminar esta fotaza?')")
+          button(type="submit" style="color: red; cursor: pointer;") Eliminar
+        hr
+else
+  p No hay fotos cargadas todavía.
+  
+
+================================================================================
+File: views\nuevaFotaza.pug
+================================================================================
+
+// views/nuevaFotaza.pug
+h1 Nueva Fotaza
+form(action="/fotazas/create", method="POST")
+  div
+    label(for="titulo") Título:
+    input(type="text", name="titulo", required)
+  div
+    label(for="descripcion") Descripción:
+    textarea(name="descripcion", required)
+  div
+    label(for="url_imagen") URL Imagen:
+    input(type="text", name="url_imagen", required)
+  button(type="submit") Guardar Fotaza

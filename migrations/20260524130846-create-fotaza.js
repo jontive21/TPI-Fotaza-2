@@ -18,6 +18,9 @@ module.exports = {
       url_imagen: {
         type: Sequelize.STRING
       },
+      etiquetas: {
+        type: Sequelize.STRING
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

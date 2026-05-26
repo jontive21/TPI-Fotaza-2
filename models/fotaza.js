@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
     titulo: DataTypes.STRING,
     descripcion: DataTypes.STRING,
     url_imagen: DataTypes.STRING
+    ,etiquetas: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Fotaza',
