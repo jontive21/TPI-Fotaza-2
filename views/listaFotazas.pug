@@ -1,35 +1,50 @@
 h1 Listado de Fotazas
+
+//- Barra superior rústica para cambiar de usuario en la simulación
+div(style="background-color: #f0f0f0; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc;")
+  if usuarioLogueado
+    span Estado actual: 🟢 **Usuario Registrado** a(href="/fotazas/logout-simulado" style="margin-left: 15px; color: red;") [Cerrar Sesión]
+  else
+    span Estado actual: 👤 **Visitante Anónimo** (Solo lectura)
+    a(href="/fotazas/login-simulado" style="margin-left: 15px; color: green;") [Simular Ingreso de Usuario]
+
 br
-a(href="/fotazas/create") + Agregar una nueva fotaza
+
+//- El botón de agregar solo aparece si el usuario está registrado
+if usuarioLogueado
+  a(href="/fotazas/create" style="font-weight: bold; color: green;") + Agregar una nueva fotaza
 br
 br
-//- ¡AGREGAMOS ESTE BLOQUE DE FORMULARIO DE BÚSQUEDA!
+
 form(action="/fotazas" method="GET" style="margin-bottom: 20px;")
   input(type="text" name="q" value=busqueda placeholder="Buscar por título o etiqueta..." style="padding: 5px; width: 250px;")
-  button(type="submit" style="padding: 5px; margin-left: 5px; cursor: pointer;") Buscar
+  button(type="submit" style="padding: 5px; margin-left: 5px;") Buscar
   if busqueda
-    a(href="/fotazas" style="margin-left: 10px; color: gray; text-decoration: none;") Limpiar filtro
+    a(href="/fotazas" style="margin-left: 10px; color: gray;") Limpiar filtro
 br
 
 if fotos.length > 0
   ul
     each foto in fotos
-      li
-        strong= foto.titulo
+      li(style="list-style: none; margin-bottom: 30px;")
+        strong(style="font-size: 1.2em;")= foto.titulo
         p= foto.descripcion
+        if foto.etiquetas
+          p(style="color: gray; font-style: italic; font-size: 0.9em;") Etiquetas: #{foto.etiquetas}
         if foto.url_imagen
           img(src=foto.url_imagen, width="200")
-        if foto.etiquetas
-          p(style="color: gray; font-style: italic;") Etiquetas: #{foto.etiquetas}
         br
         br
         
-        //- ¡AGREGAMOS ESTE BLOQUE DE VOTACIÓN!
-        form(action=`/fotazas/votar/${foto.id}` method="POST" style="margin-bottom: 10px;")
-          span(style="margin-right: 10px; font-weight: bold;") 👍 Votos: #{foto.votos || 0}
-          button(type="submit" style="cursor: pointer; padding: 2px 8px;") ¡Votar foto!
-        
-        //- ¡AQUÍ COLOCAMOS EL BLOQUE DE COMENTARIOS!
+        //- Bloque de votación protegido
+        if usuarioLogueado
+          form(action=`/fotazas/votar/${foto.id}` method="POST" style="margin-bottom: 10px;")
+            span(style="margin-right: 10px; font-weight: bold;") 👍 Votos: #{foto.votos || 0}
+            button(type="submit") ¡Votar foto!
+        else
+          p(style="font-weight: bold; color: #555;") 👍 Votos: #{foto.votos || 0} (Ingresa para votar)
+
+        //- Bloque de comentarios protegido
         div(style="background-color: #e9e9e9; padding: 10px; margin-top: 10px; border-radius: 5px; width: 50%;")
           h4 Comentarios:
           if foto.comentarios && foto.comentarios.length > 0
@@ -37,19 +52,23 @@ if fotos.length > 0
               each comentario in foto.comentarios
                 li(style="margin-bottom: 5px; font-size: 0.95em;")= comentario.contenido
           else
-            p(style="color: gray; font-size: 0.9em;") No hay comentarios. Sé el primero en comentar.
+            p(style="color: gray; font-size: 0.9em;") No hay comentarios.
           
-          //- Formulario para escribir un nuevo comentario
-          form(action="/fotazas/comment" method="POST" style="margin-top: 10px;")
-            input(type="hidden" name="fotazaId" value=foto.id)
-            input(type="text" name="contenido" placeholder="Escribe un comentario..." required style="width: 70%; padding: 4px;")
-            button(type="submit" style="padding: 4px 10px; margin-left: 5px; cursor: pointer;") Enviar
+          if usuarioLogueado
+            form(action="/fotazas/comment" method="POST" style="margin-top: 10px;")
+              input(type="hidden" name="fotazaId" value=foto.id)
+              input(type="text" name="contenido" placeholder="Escribe un comentario..." required style="width: 70%; padding: 4px;")
+              button(type="submit" style="padding: 4px 10px; margin-left: 5px;") Enviar
+          else
+            p(style="color: gray; font-style: italic; font-size: 0.85em;") Debes iniciar sesión para comentar.
             
         br
-        a(href=`/fotazas/edit/${foto.id}` style="margin-right: 15px; color: blue;") Editar
-        form(action=`/fotazas/delete/${foto.id}` method="POST" onsubmit="return confirm('¿Seguro que quieres eliminar esta fotaza?')")
-          button(type="submit" style="color: red; cursor: pointer;") Eliminar
+        //- Botones de edición y borrado protegidos
+        if usuarioLogueado
+          a(href=`/fotazas/edit/${foto.id}` style="margin-right: 15px; color: blue;") Editar
+          form(action=`/fotazas/delete/${foto.id}` method="POST" style="display: inline;" onsubmit="return confirm('¿Seguro?')")
+            button(type="submit" style="color: red;") Eliminar
         hr
 else
-  p No hay fotos cargadas todavía.
+  p No se encontraron fotazas.
   

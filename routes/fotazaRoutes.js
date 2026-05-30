@@ -24,4 +24,16 @@ router.post('/edit/:id', fotazaController.update);
 // Ruta para agregar comentarios
 router.post('/comment', comentarioController.create);
 
+// Ruta rústica para simular que iniciamos sesión
+router.get('/login-simulado', (req, res) => {
+    global.usuarioLogueado = true;
+    res.redirect('/fotazas');
+});
+
+// Ruta rústica para simular que cerramos sesión (volver a anónimo)
+router.get('/logout-simulado', (req, res) => {
+    global.usuarioLogueado = false;
+    res.redirect('/fotazas');
+});
+
 module.exports = router;
