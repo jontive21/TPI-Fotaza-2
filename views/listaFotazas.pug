@@ -41,6 +41,8 @@ if fotos.length > 0
           form(action=`/fotazas/votar/${foto.id}` method="POST" style="margin-bottom: 10px;")
             span(style="margin-right: 10px; font-weight: bold;") 👍 Votos: #{foto.votos || 0}
             button(type="submit") ¡Votar foto!
+          form(action=`/fotazas/denunciar/${foto.id}` method="POST" style="display: inline; margin-left: 10px;")
+            button(type="submit" style="color: orange; cursor: pointer;") Denunciar
         else
           p(style="font-weight: bold; color: #555;") 👍 Votos: #{foto.votos || 0} (Ingresa para votar)
 

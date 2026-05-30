@@ -108,6 +108,20 @@ const fotazaController = {
             console.error(error);
             res.status(500).send("Error al procesar el voto");
         }
+    },
+
+    denunciar: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const foto = await Fotaza.findByPk(id);
+            if (foto) {
+                foto.denuncias = (foto.denuncias || 0) + 1;
+                await foto.save();
+            }
+            res.redirect('/fotazas');
+        } catch (error) {
+            res.status(500).send("Error al denunciar");
+        }
     }
 };
 

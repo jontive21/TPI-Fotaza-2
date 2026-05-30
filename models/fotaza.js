@@ -14,7 +14,8 @@ module.exports = (sequelize, DataTypes) => {
     descripcion: DataTypes.STRING,
     url_imagen: DataTypes.STRING,
     etiquetas: DataTypes.STRING,
-    votos: DataTypes.INTEGER
+    votos: DataTypes.INTEGER,
+    denuncias: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Fotaza',
