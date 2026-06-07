@@ -31,6 +31,12 @@ const PORT = process.env.PORT || 3000;
 // =====================================================
 // CONEXIÓN A BASE DE DATOS CON SSL (TiDB Cloud)
 // =====================================================
+console.log("--- DEBUG DE VARIABLES ---");
+console.log("DB_HOST:", process.env.DB_HOST);
+console.log("DB_USER:", process.env.DB_USERNAME);
+console.log("NODE_ENV:", process.env.NODE_ENV);
+console.log("--------------------------");
+
 const config = require('./config/config.js');
 const env = process.env.NODE_ENV || 'development';
 const dbConfig = config[env];
