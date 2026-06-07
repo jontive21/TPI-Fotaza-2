@@ -3,7 +3,6 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Comentario extends Model {
     static associate(models) {
-      // Un comentario pertenece a una Fotaza
       Comentario.belongsTo(models.Fotaza, { foreignKey: 'fotazaId', as: 'foto' });
     }
   }
@@ -12,8 +11,10 @@ module.exports = (sequelize, DataTypes) => {
     fotazaId: DataTypes.INTEGER
   }, {
     sequelize,
-    modelName: 'Comentario',tableName: 'comentarios',    // ← AGREGAR
+    modelName: 'Comentario',
+    tableName: 'comentarios',
     freezeTableName: true,
+    timestamps: true
   });
   return Comentario;
 };

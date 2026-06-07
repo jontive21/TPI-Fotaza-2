@@ -1,11 +1,8 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Fotaza extends Model {
     static associate(models) {
-      // Una fotaza tiene muchos comentarios
       Fotaza.hasMany(models.Comentario, { foreignKey: 'fotazaId', as: 'comentarios' });
     }
   }
@@ -18,9 +15,10 @@ module.exports = (sequelize, DataTypes) => {
     denuncias: DataTypes.INTEGER
   }, {
     sequelize,
-    tableName: 'fotazas',        // ← nuevo en minus
-    freezeTableName: true, 
     modelName: 'Fotaza',
+    tableName: 'fotazas',
+    freezeTableName: true,
+    timestamps: true
   });
   return Fotaza;
 };
