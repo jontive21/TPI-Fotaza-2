@@ -20,7 +20,7 @@ module.exports = {
     database: "fotaza_db_production",
     host: process.env.DB_HOST,
     port: 4000,
-    dialect: process.env.DB_DIALECT || "mysql",
+    dialect: "mysql",
     dialectOptions: {
       ssl: {
         require: true,
