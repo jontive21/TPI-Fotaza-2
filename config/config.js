@@ -1,5 +1,4 @@
 require('dotenv').config();
-
 module.exports = {
   development: {
     username: process.env.DB_USERNAME || "root",
@@ -21,7 +20,7 @@ module.exports = {
     database: "fotaza_db_production",
     host: process.env.DB_HOST,
     port: 4000,
-    dialect: "mysql",
+    dialect: process.env.DB_DIALECT || "mysql",
     dialectOptions: {
       ssl: {
         require: true,
