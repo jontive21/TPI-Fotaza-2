@@ -1,0 +1,714 @@
+========================================================
+FILE: app.js
+========================================================
+
+require('dotenv').config();
+const express = require('express');
+const path = require('path');
+
+const app = express();
+
+// View engine (Pug en proyecto)
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
+// Middlewares
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+// Servidor de archivos estáticos (para CSS, imágenes, etc.)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Variable rústica global para simular el estado del usuario
+// true = usuario logueado / false = visitante anónimo
+global.usuarioLogueado = false;
+
+// Middleware simple para pasar este estado a todas las vistas de Pug
+app.use((req, res, next) => {
+    res.locals.usuarioLogueado = global.usuarioLogueado;
+    next();
+});
+
+// Rutas
+const fotazaRoutes = require('./routes/fotazaRoutes');
+app.use('/fotazas', fotazaRoutes);
+
+// Puerto
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+module.exports = app;
+
+
+========================================================
+FILE: config\config.js
+========================================================
+
+require('dotenv').config();
+
+module.exports = {
+  development: {
+    username: process.env.DB_USERNAME || "root",
+    password: process.env.DB_PASSWORD || null,
+    database: process.env.DB_NAME || "fotaza_db",
+    host: process.env.DB_HOST || "127.0.0.1",
+    dialect: process.env.DB_DIALECT || "mysql"
+  },
+  test: {
+    username: process.env.DB_USERNAME || "root",
+    password: process.env.DB_PASSWORD || null,
+    database: "fotaza_db_test",
+    host: process.env.DB_HOST || "127.0.0.1",
+    dialect: process.env.DB_DIALECT || "mysql"
+  },
+  production: {
+    username: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+    database: "fotaza_db_production",
+    host: process.env.DB_HOST,
+    dialect: process.env.DB_DIALECT
+  }
+};
+
+
+========================================================
+FILE: controllers\comentarioController.js
+========================================================
+
+// controllers/comentarioController.js
+const { Comentario } = require('../models');
+
+const comentarioController = {
+    // Método para procesar el formulario y crear un comentario
+    create: async (req, res) => {
+        try {
+            const { contenido, fotazaId } = req.body;
+            
+            // Guardamos el comentario en MySQL
+            await Comentario.create({
+                contenido: contenido,
+                fotazaId: fotazaId
+            });
+            
+            // Redirigimos de vuelta a la página principal de fotazas
+            res.redirect('/fotazas');
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error al publicar el comentario");
+        }
+    }
+};
+
+module.exports = comentarioController;
+
+========================================================
+FILE: controllers\fotazaController.js
+========================================================
+
+const { Op } = require('sequelize');
+const { Fotaza } = require('../models');
+
+const fotazaController = {
+    // Método para listar todas las fotos (alias de index)
+    listar: async (req, res) => {
+        try {
+            const fotos = await Fotaza.findAll({
+                include: 'comentarios'
+            });
+            res.render('listaFotazas', { fotos }); // Esto renderizará una vista en Pug
+        } catch (error) {
+            res.status(500).send("Error al obtener las fotos");
+        }
+    },
+
+    // Método para listar y buscar (Modificado para incluir comentarios)
+    index: async (req, res) => {
+        try {
+            const { q } = req.query;
+            let fotos;
+
+            if (q) {
+                fotos = await Fotaza.findAll({
+                    where: {
+                        [Op.or]: [
+                            { titulo: { [Op.like]: `%${q}%` } },
+                            { etiquetas: { [Op.like]: `%${q}%` } }
+                        ]
+                    },
+                    include: 'comentarios' // ¡AGREGAMOS ESTO!
+                });
+            } else {
+                fotos = await Fotaza.findAll({
+                    include: 'comentarios' // ¡AGREGAMOS ESTO!
+                });
+            }
+
+            res.render('listaFotazas', { fotos: fotos, busqueda: q || '' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error al procesar el listado o la búsqueda");
+        }
+    },
+
+    // Método para crear una nueva foto
+    create: async (req, res) => {
+        try {
+            await Fotaza.create(req.body);
+            res.redirect('/fotazas');
+        } catch (error) {
+            res.status(500).send("Error al guardar la foto");
+        }
+    },
+
+    // Método para eliminar una foto
+    delete: async (req, res) => {
+        try {
+            await Fotaza.destroy({
+                where: { id: req.params.id }
+            });
+            res.redirect('/fotazas');
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error al eliminar la foto");
+        }
+    },
+
+    // Muestra el formulario con los datos cargados
+    editForm: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const foto = await Fotaza.findByPk(id);
+            res.render('editarFotaza', { foto: foto });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error al buscar la fotaza");
+        }
+    },
+
+    // Guarda los cambios modificados en MySQL
+    update: async (req, res) => {
+        try {
+            const { id } = req.params;
+            await Fotaza.update(req.body, {
+                where: { id: id }
+            });
+            res.redirect('/fotazas');
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error al actualizar la fotaza");
+        }
+    },
+
+    // Método rústico para sumar un voto a la fotaza
+    votar: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const foto = await Fotaza.findByPk(id); // Buscamos la foto por ID
+            
+            if (foto) {
+                foto.votos = (foto.votos || 0) + 1; // Le sumamos 1 al contador
+                await foto.save(); // Guardamos el cambio en MySQL
+            }
+            
+            res.redirect('/fotazas'); // Volvemos a la lista para ver el cambio
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error al procesar el voto");
+        }
+    },
+
+    denunciar: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const foto = await Fotaza.findByPk(id);
+            if (foto) {
+                foto.denuncias = (foto.denuncias || 0) + 1;
+                await foto.save();
+            }
+            res.redirect('/fotazas');
+        } catch (error) {
+            res.status(500).send("Error al denunciar");
+        }
+    }
+};
+
+module.exports = fotazaController;
+
+
+========================================================
+FILE: migrations\20260524130036-create-fotaza.js
+========================================================
+
+'use strict';
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('Fotazas', {
+      id: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER
+      },
+      titulo: {
+        type: Sequelize.STRING
+      },
+      descripcion: {
+        type: Sequelize.STRING
+      },
+      url_imagen: {
+        type: Sequelize.STRING
+      },
+      etiquetas: {
+        type: Sequelize.STRING
+      },
+      votos: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
+      },
+      
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      }
+    });
+  },
+  async down(queryInterface, Sequelize) {
+    await queryInterface.dropTable('Fotazas');
+  }
+};
+
+========================================================
+FILE: migrations\20260524130846-create-fotaza.js
+========================================================
+
+'use strict';
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('Fotazas', {
+      id: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER
+      },
+      titulo: {
+        type: Sequelize.STRING
+      },
+      descripcion: {
+        type: Sequelize.STRING
+      },
+      url_imagen: {
+        type: Sequelize.STRING
+      },
+      etiquetas: {
+        type: Sequelize.STRING
+      },
+      votos: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
+      },
+      
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      }
+    });
+  },
+  async down(queryInterface, Sequelize) {
+    await queryInterface.dropTable('Fotazas');
+  }
+};
+
+========================================================
+FILE: migrations\20260526214235-create-comentario.js
+========================================================
+
+'use strict';
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('Comentarios', {
+      id: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER
+      },
+      contenido: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      fotazaId: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      }
+    });
+  },
+  async down(queryInterface, Sequelize) {
+    await queryInterface.dropTable('Comentarios');
+  }
+};
+
+========================================================
+FILE: migrations\20260530232318-add-denuncias-to-fotaza.js
+========================================================
+
+'use strict';
+
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up (queryInterface, Sequelize) {
+    await queryInterface.addColumn('Fotazas', 'denuncias', {
+      type: Sequelize.INTEGER,
+      defaultValue: 0
+    });
+  },
+
+  async down (queryInterface, Sequelize) {
+    await queryInterface.removeColumn('Fotazas', 'denuncias');
+  }
+};
+
+
+========================================================
+FILE: models\comentario.js
+========================================================
+
+'use strict';
+const { Model } = require('sequelize');
+module.exports = (sequelize, DataTypes) => {
+  class Comentario extends Model {
+    static associate(models) {
+      // Un comentario pertenece a una Fotaza
+      Comentario.belongsTo(models.Fotaza, { foreignKey: 'fotazaId', as: 'foto' });
+    }
+  }
+  Comentario.init({
+    contenido: DataTypes.STRING,
+    fotazaId: DataTypes.INTEGER
+  }, {
+    sequelize,
+    modelName: 'Comentario',
+  });
+  return Comentario;
+};
+
+========================================================
+FILE: models\fotaza.js
+========================================================
+
+'use strict';
+const {
+  Model
+} = require('sequelize');
+module.exports = (sequelize, DataTypes) => {
+  class Fotaza extends Model {
+    static associate(models) {
+      // Una fotaza tiene muchos comentarios
+      Fotaza.hasMany(models.Comentario, { foreignKey: 'fotazaId', as: 'comentarios' });
+    }
+  }
+  Fotaza.init({
+    titulo: DataTypes.STRING,
+    descripcion: DataTypes.STRING,
+    url_imagen: DataTypes.STRING,
+    etiquetas: DataTypes.STRING,
+    votos: DataTypes.INTEGER,
+    denuncias: DataTypes.INTEGER
+  }, {
+    sequelize,
+    modelName: 'Fotaza',
+  });
+  return Fotaza;
+};
+
+========================================================
+FILE: models\index.js
+========================================================
+
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const Sequelize = require('sequelize');
+const process = require('process');
+const basename = path.basename(__filename);
+const env = process.env.NODE_ENV || 'development';
+const config = require(__dirname + '/../config/config.js')[env];
+const db = {};
+
+let sequelize;
+if (config.use_env_variable) {
+  sequelize = new Sequelize(process.env[config.use_env_variable], config);
+} else {
+  sequelize = new Sequelize(config.database, config.username, config.password, config);
+}
+
+fs
+  .readdirSync(__dirname)
+  .filter(file => {
+    return (
+      file.indexOf('.') !== 0 &&
+      file !== basename &&
+      file.slice(-3) === '.js' &&
+      file.indexOf('.test.js') === -1
+    );
+  })
+  .forEach(file => {
+    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
+    db[model.name] = model;
+  });
+
+Object.keys(db).forEach(modelName => {
+  if (db[modelName].associate) {
+    db[modelName].associate(db);
+  }
+});
+
+db.sequelize = sequelize;
+db.Sequelize = Sequelize;
+
+module.exports = db;
+
+
+========================================================
+FILE: package.json
+========================================================
+
+{
+  "name": "tpi-fotaza-2",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node app.js",
+    "db:init": "npx sequelize-cli db:migrate",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mysql2": "^3.22.3",
+    "pug": "^3.0.4",
+    "sequelize": "^6.37.8",
+    "sequelize-cli": "^6.6.5"
+  }
+}
+
+========================================================
+FILE: public\css\test.css
+========================================================
+
+body { background-color: #f0f0f0; }
+
+========================================================
+FILE: README.md
+========================================================
+
+# Proyecto Fotaza 2
+
+Este es el Trabajo Práctico Integrador de Programación Web II.
+
+## Instrucciones de ejecución
+1. Clonar el repositorio.
+2. Instalar dependencias: `npm install`
+3. Configurar el archivo `.env` (usar `.env.example` como guía).
+4. Inicializar base de datos: `npm run db:init`
+5. Ejecutar la aplicación: `npm start`
+
+Acceder en: http://localhost:3000/fotazas
+
+========================================================
+FILE: routes\fotazaRoutes.js
+========================================================
+
+const express = require('express');
+const router = express.Router();
+const fotazaController = require('../controllers/fotazaController');
+const comentarioController = require('../controllers/comentarioController');
+
+// Ruta para ver el listado
+router.get('/', fotazaController.index);
+router.get('/create', (req, res) => {
+    res.render('nuevaFotaza');
+});
+// Ruta para guardar una nueva (será un POST desde formulario)
+router.post('/create', fotazaController.create);
+
+// Ruta para eliminar una fotaza
+router.post('/delete/:id', fotazaController.delete);
+
+// Ruta para votar una fotaza
+router.post('/votar/:id', fotazaController.votar);
+router.post('/denunciar/:id', fotazaController.denunciar);
+
+// Rutas para Editar
+router.get('/edit/:id', fotazaController.editForm);
+router.post('/edit/:id', fotazaController.update);
+
+// Ruta para agregar comentarios
+router.post('/comment', comentarioController.create);
+
+// Ruta rústica para simular que iniciamos sesión
+router.get('/login-simulado', (req, res) => {
+    global.usuarioLogueado = true;
+    res.redirect('/fotazas');
+});
+
+// Ruta rústica para simular que cerramos sesión (volver a anónimo)
+router.get('/logout-simulado', (req, res) => {
+    global.usuarioLogueado = false;
+    res.redirect('/fotazas');
+});
+
+module.exports = router;
+
+
+========================================================
+FILE: views\editarFotaza.pug
+========================================================
+
+h1 Editar Fotaza
+form(action=`/fotazas/edit/${foto.id}` method="POST")
+  div
+    label Título:
+    br
+    input(type="text" name="titulo" value=foto.titulo required=true)
+  br
+  div
+    label Descripción:
+    br
+    textarea(name="descripcion" required=true)= foto.descripcion
+  br
+  div
+    label URL de la Imagen:
+    br
+    input(type="text" name="url_imagen" value=foto.url_imagen required=true)
+  br
+  div
+    label Etiquetas (separadas por comas):
+    br
+    input(type="text" name="etiquetas" value=foto.etiquetas)
+  br
+  button(type="submit") Actualizar Cambios
+br
+a(href="/fotazas") Cancelar y volver
+
+========================================================
+FILE: views\listaFotazas.pug
+========================================================
+
+h1 Listado de Fotazas
+
+//- Barra superior rústica para cambiar de usuario en la simulación
+div(style="background-color: #f0f0f0; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc;")
+  if usuarioLogueado
+    span Estado actual: 🟢 **Usuario Registrado** a(href="/fotazas/logout-simulado" style="margin-left: 15px; color: red;") [Cerrar Sesión]
+  else
+    span Estado actual: 👤 **Visitante Anónimo** (Solo lectura)
+    a(href="/fotazas/login-simulado" style="margin-left: 15px; color: green;") [Simular Ingreso de Usuario]
+
+br
+
+//- El botón de agregar solo aparece si el usuario está registrado
+if usuarioLogueado
+  a(href="/fotazas/create" style="font-weight: bold; color: green;") + Agregar una nueva fotaza
+br
+br
+
+form(action="/fotazas" method="GET" style="margin-bottom: 20px;")
+  input(type="text" name="q" value=busqueda placeholder="Buscar por título o etiqueta..." style="padding: 5px; width: 250px;")
+  button(type="submit" style="padding: 5px; margin-left: 5px;") Buscar
+  if busqueda
+    a(href="/fotazas" style="margin-left: 10px; color: gray;") Limpiar filtro
+br
+
+if fotos.length > 0
+  ul
+    each foto in fotos
+      li(style="list-style: none; margin-bottom: 30px;")
+        strong(style="font-size: 1.2em;")= foto.titulo
+        p= foto.descripcion
+        if foto.etiquetas
+          p(style="color: gray; font-style: italic; font-size: 0.9em;") Etiquetas: #{foto.etiquetas}
+        if foto.url_imagen
+          img(src=foto.url_imagen, width="200")
+        br
+        br
+        
+        //- Bloque de votación protegido
+        if usuarioLogueado
+          form(action=`/fotazas/votar/${foto.id}` method="POST" style="margin-bottom: 10px;")
+            span(style="margin-right: 10px; font-weight: bold;") 👍 Votos: #{foto.votos || 0}
+            button(type="submit") ¡Votar foto!
+          form(action=`/fotazas/denunciar/${foto.id}` method="POST" style="display: inline; margin-left: 10px;")
+            button(type="submit" style="color: orange; cursor: pointer;") Denunciar
+        else
+          p(style="font-weight: bold; color: #555;") 👍 Votos: #{foto.votos || 0} (Ingresa para votar)
+
+        //- Bloque de comentarios protegido
+        div(style="background-color: #e9e9e9; padding: 10px; margin-top: 10px; border-radius: 5px; width: 50%;")
+          h4 Comentarios:
+          if foto.comentarios && foto.comentarios.length > 0
+            ul
+              each comentario in foto.comentarios
+                li(style="margin-bottom: 5px; font-size: 0.95em;")= comentario.contenido
+          else
+            p(style="color: gray; font-size: 0.9em;") No hay comentarios.
+          
+          if usuarioLogueado
+            form(action="/fotazas/comment" method="POST" style="margin-top: 10px;")
+              input(type="hidden" name="fotazaId" value=foto.id)
+              input(type="text" name="contenido" placeholder="Escribe un comentario..." required style="width: 70%; padding: 4px;")
+              button(type="submit" style="padding: 4px 10px; margin-left: 5px;") Enviar
+          else
+            p(style="color: gray; font-style: italic; font-size: 0.85em;") Debes iniciar sesión para comentar.
+            
+        br
+        //- Botones de edición y borrado protegidos
+        if usuarioLogueado
+          a(href=`/fotazas/edit/${foto.id}` style="margin-right: 15px; color: blue;") Editar
+          form(action=`/fotazas/delete/${foto.id}` method="POST" style="display: inline;" onsubmit="return confirm('¿Seguro?')")
+            button(type="submit" style="color: red;") Eliminar
+        hr
+else
+  p No se encontraron fotazas.
+  
+
+========================================================
+FILE: views\nuevaFotaza.pug
+========================================================
+
+// views/nuevaFotaza.pug
+h1 Nueva Fotaza
+form(action="/fotazas/create", method="POST")
+  div
+    label(for="titulo") Título:
+    input(type="text", name="titulo", required)
+  div
+    label(for="descripcion") Descripción:
+    textarea(name="descripcion", required)
+  div
+    label(for="url_imagen") URL Imagen:
+    input(type="text", name="url_imagen", required)
+  div
+    label(for="etiquetas") Etiquetas (separadas por comas):
+    input(type="text", name="etiquetas", placeholder="ej: naturaleza, sol, vacaciones")
+  button(type="submit") Guardar Fotaza
+
