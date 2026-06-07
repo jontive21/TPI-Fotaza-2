@@ -17,10 +17,10 @@ module.exports = {
   production: {
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
-    database: "fotaza_db_production",
+    database: process.env.DB_NAME,
     host: process.env.DB_HOST,
-    port: 4000,
-    dialect: "mysql",
+    port: process.env.DB_PORT,
+    dialect: 'mysql',
     dialectOptions: {
       ssl: {
         require: true,
