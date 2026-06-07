@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node app.js",
-    "db:init": "npx sequelize-cli db:migrate",
+    "db:init": "node ./config/init-db.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
