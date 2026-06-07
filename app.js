@@ -4,7 +4,7 @@ const path = require('path');
 const { Sequelize } = require('sequelize');
 const app = express();
 
-// View engine
+// View engine (Pug)
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
@@ -29,7 +29,7 @@ app.use('/fotazas', fotazaRoutes);
 const PORT = process.env.PORT || 3000;
 
 // =====================================================
-// CONEXIÓN A LA BASE DE DATOS CON SSL
+// CONEXIÓN A BASE DE DATOS CON SSL (TiDB Cloud)
 // =====================================================
 const config = require('./config/config.js');
 const env = process.env.NODE_ENV || 'development';
@@ -48,7 +48,7 @@ const sequelize = new Sequelize(
   }
 );
 
-// Iniciar servidor solo después de sincronizar la BD
+// Iniciar servidor SOLO después de conectar y crear tablas
 sequelize.authenticate()
   .then(() => {
     console.log('✅ Conexión a la base de datos establecida.');
@@ -59,7 +59,7 @@ sequelize.authenticate()
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   })
   .catch(err => {
-    console.error('❌ Error al conectar con la base de datos:', err);
+    console.error('❌ Error al conectar:', err.message);
     process.exit(1);
   });
 
