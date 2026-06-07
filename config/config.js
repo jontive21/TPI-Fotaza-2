@@ -20,8 +20,8 @@ module.exports = {
     password: process.env.DB_PASSWORD,
     database: "fotaza_db_production",
     host: process.env.DB_HOST,
-    port: 4000,
-    dialect: "mysql",
+    port: process.env.DB_PORT || 4000,
+    dialect: process.env.DB_DIALECT || "mysql",
     dialectOptions: {
       ssl: {
         require: true,
