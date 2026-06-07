@@ -7,9 +7,17 @@ const comentarioController = {
         try {
             const { contenido, fotazaId } = req.body;
             
+            if (!contenido || !contenido.trim()) {
+                return res.status(400).send("El comentario no puede estar vacío");
+            }
+            
+            if (!fotazaId) {
+                return res.status(400).send("ID de fotaza requerido");
+            }
+            
             // Guardamos el comentario en MySQL
             await Comentario.create({
-                contenido: contenido,
+                contenido: contenido.trim(),
                 fotazaId: fotazaId
             });
             

@@ -46,9 +46,23 @@ const fotazaController = {
     // Método para crear una nueva foto
     create: async (req, res) => {
         try {
-            await Fotaza.create(req.body);
+            const { titulo, descripcion, url_imagen, etiquetas } = req.body;
+            
+            if (!titulo || !descripcion || !url_imagen) {
+                return res.status(400).send("Los campos título, descripción e imagen son requeridos");
+            }
+            
+            await Fotaza.create({
+                titulo,
+                descripcion,
+                url_imagen,
+                etiquetas,
+                votos: 0,
+                denuncias: 0
+            });
             res.redirect('/fotazas');
         } catch (error) {
+            console.error(error);
             res.status(500).send("Error al guardar la foto");
         }
     },
@@ -82,8 +96,22 @@ const fotazaController = {
     update: async (req, res) => {
         try {
             const { id } = req.params;
-            await Fotaza.update(req.body, {
-                where: { id: id }
+            const { titulo, descripcion, url_imagen, etiquetas } = req.body;
+            
+            if (!titulo || !descripcion || !url_imagen) {
+                return res.status(400).send("Los campos título, descripción e imagen son requeridos");
+            }
+            
+            const foto = await Fotaza.findByPk(id);
+            if (!foto) {
+                return res.status(404).send("La fotaza no existe");
+            }
+            
+            await foto.update({
+                titulo,
+                descripcion,
+                url_imagen,
+                etiquetas
             });
             res.redirect('/fotazas');
         } catch (error) {

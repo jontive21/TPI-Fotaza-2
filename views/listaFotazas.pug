@@ -3,9 +3,10 @@ h1 Listado de Fotazas
 //- Barra superior rústica para cambiar de usuario en la simulación
 div(style="background-color: #f0f0f0; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc;")
   if usuarioLogueado
-    span Estado actual: 🟢 **Usuario Registrado** a(href="/fotazas/logout-simulado" style="margin-left: 15px; color: red;") [Cerrar Sesión]
+    span(style="font-weight: bold;") Estado actual: 🟢 Usuario Registrado
+    a(href="/fotazas/logout-simulado" style="margin-left: 15px; color: red;") [Cerrar Sesión]
   else
-    span Estado actual: 👤 **Visitante Anónimo** (Solo lectura)
+    span(style="font-weight: bold;") Estado actual: 👤 Visitante Anónimo (Solo lectura)
     a(href="/fotazas/login-simulado" style="margin-left: 15px; color: green;") [Simular Ingreso de Usuario]
 
 br

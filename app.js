@@ -1,7 +1,6 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
-const { Sequelize } = require('sequelize');
 const app = express();
 
 // View engine (Pug)
@@ -31,28 +30,13 @@ const PORT = process.env.PORT || 3000;
 // =====================================================
 // CONEXIÓN A BASE DE DATOS CON SSL (TiDB Cloud)
 // =====================================================
-const config = require('./config/config.js');
-const env = process.env.NODE_ENV || 'development';
-const dbConfig = config[env];
-
-const sequelize = new Sequelize(
-  dbConfig.database,
-  dbConfig.username,
-  dbConfig.password,
-  {
-    host: dbConfig.host,
-    port: dbConfig.port || 3306,
-    dialect: dbConfig.dialect,
-    dialectOptions: dbConfig.dialectOptions || {},
-    logging: false
-  }
-);
+const db = require('./models');
 
 // Iniciar servidor SOLO después de conectar y crear tablas
-sequelize.authenticate()
+db.sequelize.authenticate()
   .then(() => {
     console.log('✅ Conexión a la base de datos establecida.');
-    return sequelize.sync();
+    return db.sequelize.sync();
   })
   .then(() => {
     console.log('✅ Tablas sincronizadas.');

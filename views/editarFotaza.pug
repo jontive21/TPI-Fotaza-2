@@ -3,17 +3,17 @@ form(action=`/fotazas/edit/${foto.id}` method="POST")
   div
     label Título:
     br
-    input(type="text" name="titulo" value=foto.titulo required=true)
+    input(type="text" name="titulo" value=foto.titulo required)
   br
   div
     label Descripción:
     br
-    textarea(name="descripcion" required=true)= foto.descripcion
+    textarea(name="descripcion" required)= foto.descripcion
   br
   div
     label URL de la Imagen:
     br
-    input(type="text" name="url_imagen" value=foto.url_imagen required=true)
+    input(type="text" name="url_imagen" value=foto.url_imagen required)
   br
   div
     label Etiquetas (separadas por comas):
