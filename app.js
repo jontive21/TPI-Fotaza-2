@@ -37,7 +37,7 @@ const sequelize = db.sequelize;
 sequelize.authenticate()
   .then(() => {
     console.log('✅ Conexión a la base de datos establecida.');
-    return sequelize.sync();
+    return sequelize.sync({ force: true });
   })
   .then(() => {
     console.log('✅ Tablas sincronizadas.');
