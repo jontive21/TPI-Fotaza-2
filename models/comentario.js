@@ -12,7 +12,8 @@ module.exports = (sequelize, DataTypes) => {
     fotazaId: DataTypes.INTEGER
   }, {
     sequelize,
-    modelName: 'Comentario',
+    modelName: 'Comentario',tableName: 'comentarios',    // ← AGREGAR
+    freezeTableName: true,
   });
   return Comentario;
 };

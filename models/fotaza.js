@@ -18,6 +18,8 @@ module.exports = (sequelize, DataTypes) => {
     denuncias: DataTypes.INTEGER
   }, {
     sequelize,
+    tableName: 'fotazas',        // ← nuevo en minus
+    freezeTableName: true, 
     modelName: 'Fotaza',
   });
   return Fotaza;
