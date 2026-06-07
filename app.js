@@ -29,31 +29,10 @@ app.use('/fotazas', fotazaRoutes);
 const PORT = process.env.PORT || 3000;
 
 // =====================================================
-// CONEXIÓN A BASE DE DATOS CON SSL (TiDB Cloud)
+// CONEXIÓN A BASE DE DATOS CON SSL (Aiven)
 // =====================================================
-console.log("--- DEBUG DE VARIABLES ---");
-console.log("DB_HOST:", process.env.DB_HOST);
-console.log("DB_USER:", process.env.DB_USERNAME);
-console.log("NODE_ENV:", process.env.NODE_ENV);
-console.log("--------------------------");
-
-const config = require('./config/config.js');
-const env = process.env.NODE_ENV || 'development';
-const dbConfig = config[env];
-
-const sequelize = new Sequelize(
-  dbConfig.database,
-  dbConfig.username,
-  dbConfig.password,
-  {
-    host: dbConfig.host,
-    port: dbConfig.port || 3306,
-    dialect: dbConfig.dialect,
-    dialectOptions: dbConfig.dialectOptions || {},
-    logging: false
-  }
-);
-
+const db = require('./models');
+const sequelize = db.sequelize;
 // Iniciar servidor SOLO después de conectar y crear tablas
 sequelize.authenticate()
   .then(() => {
