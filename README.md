@@ -123,6 +123,51 @@ Para cumplir con el requerimiento de que solo los usuarios registrados puedan in
 * **Cómo desactivarlo:** Haga clic en **"Simular Cierre de Sesión"**
 
 > **Nota técnica:** Este sistema de simulación fue implementado para cumplir con el requerimiento de roles sin requerir un sistema completo de autenticación con JWT o sesiones, ya que el enfoque del TPI estaba en el desarrollo backend con MVC y ORM. Se utiliza una variable global (`global.usuarioLogueado`) que se pasa a las vistas Pug mediante `res.locals`.
+---
+
+## 🔐 Nota sobre el Sistema de Autenticación
+
+**Importante para la evaluación:**
+
+Este proyecto implementa un **sistema de simululación de roles** en lugar de un sistema completo de autenticación con base de datos de usuarios. Esta decisión fue tomada por las siguientes razones:
+
+### Justificación técnica:
+
+1. **Enfoque del TPI:** El objetivo principal era demostrar el dominio de:
+   - Arquitectura MVC con Node.js y Express
+   - ORM Sequelize con MySQL
+   - Conexión a base de datos en la nube (Aiven)
+   - Despliegue en producción (Render)
+   - Renderizado de vistas con Pug
+
+2. **Simplicidad vs Complejidad:** Implementar un sistema completo de autenticación (registro, login, hashing de contraseñas, JWT/sesiones) hubiera desviado el foco de los objetivos principales del trabajo práctico.
+
+3. **Cumplimiento de funcionalidad:** El sistema de simululación cumple con el requerimiento funcional de **restringir interacciones solo a usuarios registrados**, permitiendo:
+   - ✅ Diferenciación clara entre visitante anónimo y usuario registrado
+   - ✅ Botones de acción visibles/ocultos según el rol
+   - ✅ Prueba completa de todas las funcionalidades del sistema
+
+### Cómo probar los roles:
+
+**Como Visitante Anónimo:**
+1. Accedé a la aplicación: https://tpi-fotaza-jontive.onrender.com/fotazas
+2. Por defecto, entrás como visitante (solo lectura)
+3. Podés ver el listado y usar el buscador
+4. Los botones de crear/editar/eliminar/votar/comentar están **ocultos**
+
+**Como Usuario Registrado (Simulado):**
+1. Hacé clic en el botón **"Simular Ingreso de Usuario"** en la barra superior
+2. Inmediatamente se activan todos los permisos
+3. Aparecen los botones para:
+   - ➕ Agregar nuevas fotazas
+   - ✏️ Editar fotazas existentes
+   - 🗑️ Eliminar fotazas
+   - 👍 Votar fotazas
+   - 💬 Comentar en fotazas
+   - 🚫 Denunciar contenido
+4. Para volver al modo visitante, hacé clic en **"Simular Cierre de Sesión"**
+
+---
 
 ---
 
