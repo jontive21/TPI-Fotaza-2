@@ -1,7 +1,6 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
-const { Sequelize } = require('sequelize');
 const app = express();
 
 // View engine (Pug)
@@ -29,14 +28,15 @@ app.use('/fotazas', fotazaRoutes);
 const PORT = process.env.PORT || 3000;
 
 // =====================================================
-// CONEXIÓN A BASE DE DATOS CON SSL (Aiven)
+// USAR LOS MODELOS (que ya tienen la conexión SSL de Aiven)
 // =====================================================
 const db = require('./models');
 const sequelize = db.sequelize;
+
 // Iniciar servidor SOLO después de conectar y crear tablas
 sequelize.authenticate()
   .then(() => {
-    console.log('✅ Conexión a la base de datos establecida.');
+    console.log('✅ Conexión a Aiven establecida.');
     return sequelize.sync();
   })
   .then(() => {
