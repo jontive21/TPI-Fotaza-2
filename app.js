@@ -21,6 +21,10 @@ app.use((req, res, next) => {
 });
 
 // Rutas
+app.get('/', (req, res) => {
+  res.redirect('/fotazas');
+});
+
 const fotazaRoutes = require('./routes/fotazaRoutes');
 app.use('/fotazas', fotazaRoutes);
 
